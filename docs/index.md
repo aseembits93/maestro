@@ -67,12 +67,7 @@ we recommend creating a dedicated Python environment for each model.
 
     ```bash
     pip install "maestro[qwen_2_5_vl]"
-    pip install git+https://github.com/huggingface/transformers
     ```
-
-    !!! warning
-        Support for Qwen2.5-VL in transformers is experimental.
-        For now, please install transformers from source to ensure compatibility.
 
 ### CLI
 
