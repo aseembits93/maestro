@@ -53,6 +53,7 @@ def load_model(
         cache_dir=cache_dir,
         min_pixels=min_pixels,
         max_pixels=max_pixels,
+        use_fast=True,
     )
     processor.tokenizer.padding_side = "left"
 
