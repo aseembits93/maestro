@@ -54,6 +54,7 @@ def load_model(
         min_pixels=min_pixels,
         max_pixels=max_pixels,
     )
+    processor.tokenizer.padding_side = "left"
 
     if optimization_strategy in {OptimizationStrategy.LORA, OptimizationStrategy.QLORA}:
         lora_config = LoraConfig(
