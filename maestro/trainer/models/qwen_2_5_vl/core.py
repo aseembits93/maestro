@@ -285,6 +285,7 @@ def train(config: Qwen25VLConfiguration | dict) -> None:
         max_epochs=config.epochs,
         accumulate_grad_batches=config.accumulate_grad_batches,
         check_val_every_n_epoch=1,
+        limit_val_batches=1,
         log_every_n_steps=10,
         callbacks=[save_checkpoint_callback],
     )
