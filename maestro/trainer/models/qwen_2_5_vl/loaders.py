@@ -92,4 +92,4 @@ def evaluation_collate_fn(
     pixel_values = model_inputs["pixel_values"]
     image_grid_thw = model_inputs["image_grid_thw"]
 
-    return input_ids, attention_mask, pixel_values, image_grid_thw, prefixes, suffixes
+    return (input_ids, attention_mask, pixel_values, image_grid_thw, images, prefixes, suffixes)
