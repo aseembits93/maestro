@@ -146,7 +146,7 @@ class Qwen25VLTrainer(MaestroTrainer):
 
     def validation_step(self, batch, batch_idx):
         (input_ids, attention_mask, pixel_values, image_grid_thw, images, prefixes, suffixes) = batch
-
+        image_grid_thw_cpu = image_grid_thw.cpu()
         generated_suffixes = predict_with_inputs(
             model=self.model,
             processor=self.processor,
@@ -163,8 +163,8 @@ class Qwen25VLTrainer(MaestroTrainer):
 
                 for i, image in enumerate(images):
                     image_w, image_h = image.size
-                    input_h = image_grid_thw[i][1] * 14
-                    input_w = image_grid_thw[i][2] * 14
+                    input_h = image_grid_thw_cpu[i][1] * 14
+                    input_w = image_grid_thw_cpu[i][2] * 14
 
                     predictions = sv.Detections.from_vlm(
                         vlm=sv.VLM.QWEN_2_5_VL,
