@@ -5,6 +5,7 @@ from typing import Literal, Optional
 
 import dacite
 import lightning
+import numpy as np
 import supervision as sv
 import torch
 from torch.optim import AdamW
@@ -172,12 +173,16 @@ class Qwen25VLTrainer(MaestroTrainer):
                         input_wh=(input_w, input_h),
                         resolution_wh=(image_w, image_h),
                     )
+                    predictions.class_id = np.full(len(predictions), fill_value=-1)
+                    predictions.confidence = np.full(len(predictions), fill_value=1.0)
+
                     targets = sv.Detections.from_vlm(
                         vlm=sv.VLM.QWEN_2_5_VL,
                         result=suffixes[i],
                         input_wh=(input_w, input_h),
                         resolution_wh=(image_w, image_h),
                     )
+                    targets.class_id = np.full(len(targets), fill_value=-1)
 
                     predictions_list.append(predictions)
                     targets_list.append(targets)
