@@ -5,6 +5,8 @@ from typing import Literal, Optional
 
 import dacite
 import lightning
+import numpy as np
+import supervision as sv
 import torch
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
@@ -12,11 +14,18 @@ from transformers import Qwen2_5_VLForConditionalGeneration, Qwen2_5_VLProcessor
 
 from maestro.trainer.common.callbacks import SaveCheckpoint
 from maestro.trainer.common.datasets.core import create_data_loaders, resolve_dataset_path
-from maestro.trainer.common.metrics import BaseMetric, MetricsTracker, parse_metrics, save_metric_plots
+from maestro.trainer.common.metrics import (
+    BaseMetric,
+    MeanAveragePrecisionMetric,
+    MetricsTracker,
+    parse_metrics,
+    save_metric_plots,
+)
 from maestro.trainer.common.training import MaestroTrainer
 from maestro.trainer.common.utils.device import device_is_available, parse_device_spec
 from maestro.trainer.common.utils.path import create_new_run_directory
 from maestro.trainer.common.utils.seed import ensure_reproducibility
+from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.models.qwen_2_5_vl.checkpoints import (
     DEFAULT_QWEN2_5_VL_MODEL_ID,
     DEFAULT_QWEN2_5_VL_MODEL_REVISION,
@@ -24,8 +33,11 @@ from maestro.trainer.models.qwen_2_5_vl.checkpoints import (
     load_model,
     save_model,
 )
+from maestro.trainer.models.qwen_2_5_vl.detection import detections_to_prefix_formatter, detections_to_suffix_formatter
 from maestro.trainer.models.qwen_2_5_vl.inference import predict_with_inputs
 from maestro.trainer.models.qwen_2_5_vl.loaders import evaluation_collate_fn, train_collate_fn
+
+logger = get_maestro_logger()
 
 
 @dataclass()
@@ -137,7 +149,8 @@ class Qwen25VLTrainer(MaestroTrainer):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        input_ids, attention_mask, pixel_values, image_grid_thw, prefixes, suffixes = batch
+        (input_ids, attention_mask, pixel_values, image_grid_thw, images, prefixes, suffixes) = batch
+        image_grid_thw_cpu = image_grid_thw.cpu()
         generated_suffixes = predict_with_inputs(
             model=self.model,
             processor=self.processor,
@@ -148,16 +161,60 @@ class Qwen25VLTrainer(MaestroTrainer):
             device=self.config.device,
         )
 
+        if batch_idx == 0:
+            logger.info(f"sample valid prefix: {prefixes[0]}")
+            logger.info(f"sample valid suffix: {suffixes[0]}")
+            logger.info(f"sample generated suffix: {generated_suffixes[0]}")
+
         for metric in self.config.metrics:
-            result = metric.compute(predictions=generated_suffixes, targets=suffixes)
-            for key, value in result.items():
-                self.valid_metrics_tracker.register(
-                    metric=key,
-                    epoch=self.current_epoch,
-                    step=batch_idx,
-                    value=value,
-                )
-                self.log(key, value, prog_bar=True, logger=True)
+            if isinstance(metric, MeanAveragePrecisionMetric):
+                predictions_list = []
+                targets_list = []
+
+                for i, image in enumerate(images):
+                    image_w, image_h = image.size
+                    input_h = image_grid_thw_cpu[i][1] * 14
+                    input_w = image_grid_thw_cpu[i][2] * 14
+
+                    predictions = sv.Detections.from_vlm(
+                        vlm=sv.VLM.QWEN_2_5_VL,
+                        result=generated_suffixes[i],
+                        input_wh=(input_w, input_h),
+                        resolution_wh=(image_w, image_h),
+                    )
+                    predictions.class_id = np.full(len(predictions), fill_value=-1)
+                    predictions.confidence = np.full(len(predictions), fill_value=1.0)
+
+                    targets = sv.Detections.from_vlm(
+                        vlm=sv.VLM.QWEN_2_5_VL,
+                        result=suffixes[i],
+                        input_wh=(input_w, input_h),
+                        resolution_wh=(image_w, image_h),
+                    )
+                    targets.class_id = np.full(len(targets), fill_value=-1)
+
+                    predictions_list.append(predictions)
+                    targets_list.append(targets)
+
+                result = metric.compute(predictions=predictions_list, targets=targets_list)
+                for key, value in result.items():
+                    self.valid_metrics_tracker.register(
+                        metric=key,
+                        epoch=self.current_epoch,
+                        step=batch_idx,
+                        value=value,
+                    )
+                    self.log(key, value, prog_bar=True, logger=True, batch_size=self.config.val_batch_size)
+            else:
+                result = metric.compute(predictions=generated_suffixes, targets=suffixes)
+                for key, value in result.items():
+                    self.valid_metrics_tracker.register(
+                        metric=key,
+                        epoch=self.current_epoch,
+                        step=batch_idx,
+                        value=value,
+                    )
+                    self.log(key, value, prog_bar=True, logger=True, batch_size=self.config.val_batch_size)
 
     def configure_optimizers(self):
         optimizer = AdamW(self.model.parameters(), lr=self.config.lr)
@@ -209,7 +266,16 @@ def train(config: Qwen25VLConfiguration | dict) -> None:
         test_batch_size=config.val_batch_size,
         test_collect_fn=partial(evaluation_collate_fn, processor=processor, system_message=config.system_message),
         test_num_workers=config.val_num_workers,
+        detections_to_prefix_formatter=detections_to_prefix_formatter,
+        detections_to_suffix_formatter=partial(
+            detections_to_suffix_formatter, min_pixels=config.min_pixels, max_pixels=config.max_pixels
+        ),
     )
+    _, train_entry = train_loader.dataset[0]
+
+    logger.info(f"sample train prefix: {train_entry['prefix']}")
+    logger.info(f"sample train suffix: {train_entry['suffix']}")
+
     pl_module = Qwen25VLTrainer(
         processor=processor, model=model, train_loader=train_loader, valid_loader=valid_loader, config=config
     )

@@ -65,21 +65,20 @@ def train_collate_fn(
     for image_token_id in image_tokens:
         labels[labels == image_token_id] = -100
 
-    for i, conversation in enumerate(conversations):
-        # Ensure there is an assistant turn to separate out.
-        if len(conversation) < 2:
-            continue  # Nothing to mask if there's no assistant turn.
-        sysuser_conv = conversation[:-1]  # All turns except the assistant's turn.
-        sysuser_text = processor.apply_chat_template(conversation=sysuser_conv, tokenize=False)
-        sysuser_img, _ = process_vision_info(sysuser_conv)
-        sysuser_inputs = processor(
-            text=[sysuser_text],
-            images=[sysuser_img],
+    for conversation_index, complete_conversation in enumerate(conversations):
+        if len(complete_conversation) < 2:
+            continue
+        system_user_conversation = complete_conversation[:-1]
+        system_user_text = processor.apply_chat_template(conversation=system_user_conversation, tokenize=False)
+        system_user_image, _ = process_vision_info(system_user_conversation)
+        system_user_model_inputs = processor(
+            text=[system_user_text],
+            images=[system_user_image],
             return_tensors="pt",
             padding=True,
         )
-        sysuser_len = sysuser_inputs["input_ids"].shape[1]
-        labels[i, :sysuser_len] = -100
+        system_user_input_length = system_user_model_inputs["input_ids"].shape[1]
+        labels[conversation_index, :system_user_input_length] = -100
 
     input_ids = model_inputs["input_ids"]
     attention_mask = model_inputs["attention_mask"]
@@ -108,4 +107,4 @@ def evaluation_collate_fn(
     pixel_values = model_inputs["pixel_values"]
     image_grid_thw = model_inputs["image_grid_thw"]
 
-    return input_ids, attention_mask, pixel_values, image_grid_thw, prefixes, suffixes
+    return (input_ids, attention_mask, pixel_values, image_grid_thw, images, prefixes, suffixes)

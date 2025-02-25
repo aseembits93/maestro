@@ -35,8 +35,8 @@ class COCODataset(Dataset, BaseDetectionDataset):
         login()
 
         dataset = download_dataset("universe.roboflow.com/huyifei/tft-id/1", "coco")
-        ds = COOCDataset(
-            annotations_path=f"{dataset.location}/test/_annotations.jsonl",
+        ds = COCODataset(
+            annotations_path=f"{dataset.location}/test/_annotations.coco.json",
             images_directory_path=f"{dataset.location}/test"
         )
         len(ds)

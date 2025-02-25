@@ -23,6 +23,7 @@ from maestro.trainer.common.training import MaestroTrainer
 from maestro.trainer.common.utils.device import device_is_available, parse_device_spec
 from maestro.trainer.common.utils.path import create_new_run_directory
 from maestro.trainer.common.utils.seed import ensure_reproducibility
+from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.models.florence_2.checkpoints import (
     DEFAULT_FLORENCE2_MODEL_ID,
     DEFAULT_FLORENCE2_MODEL_REVISION,
@@ -37,6 +38,8 @@ from maestro.trainer.models.florence_2.detection import (
 )
 from maestro.trainer.models.florence_2.inference import predict_with_inputs
 from maestro.trainer.models.florence_2.loaders import evaluation_collate_fn, train_collate_fn
+
+logger = get_maestro_logger()
 
 
 @dataclass()
@@ -162,6 +165,12 @@ class Florence2Trainer(MaestroTrainer):
             device=self.config.device,
             max_new_tokens=self.config.max_new_tokens,
         )
+
+        if batch_idx == 0:
+            logger.info(f"sample valid prefix: {prefixes[0]}")
+            logger.info(f"sample valid suffix: {suffixes[0]}")
+            logger.info(f"sample generated suffix: {generated_suffixes[0]}")
+
         for metric in self.config.metrics:
             if isinstance(metric, MeanAveragePrecisionMetric):
                 predictions_list = []
@@ -250,6 +259,11 @@ def train(config: Florence2Configuration | dict) -> None:
         detections_to_prefix_formatter=detections_to_prefix_formatter,
         detections_to_suffix_formatter=detections_to_suffix_formatter,
     )
+
+    _, train_entry = train_loader.dataset[0]
+    logger.info(f"sample train prefix: {train_entry['prefix']}")
+    logger.info(f"sample train suffix: {train_entry['suffix']}")
+
     pl_module = Florence2Trainer(
         processor=processor, model=model, train_loader=train_loader, valid_loader=valid_loader, config=config
     )
@@ -259,6 +273,7 @@ def train(config: Florence2Configuration | dict) -> None:
         max_epochs=config.epochs,
         accumulate_grad_batches=config.accumulate_grad_batches,
         check_val_every_n_epoch=1,
+        limit_val_batches=1,
         log_every_n_steps=10,
         callbacks=[save_checkpoint_callback],
     )

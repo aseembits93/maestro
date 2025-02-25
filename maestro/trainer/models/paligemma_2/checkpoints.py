@@ -25,7 +25,7 @@ def load_model(
     model_id_or_path: str = DEFAULT_PALIGEMMA2_MODEL_ID,
     revision: str = DEFAULT_PALIGEMMA2_MODEL_REVISION,
     device: str | torch.device = "auto",
-    optimization_strategy: OptimizationStrategy = OptimizationStrategy.LORA,
+    optimization_strategy: OptimizationStrategy = OptimizationStrategy.NONE,
     cache_dir: Optional[str] = None,
 ) -> tuple[PaliGemmaProcessor, PaliGemmaForConditionalGeneration]:
     """Loads a PaliGemma 2 model and its associated processor.
