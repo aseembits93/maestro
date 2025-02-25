@@ -52,7 +52,6 @@ recipes for popular vision-language models such as **Florence-2**, **PaliGemma 2
 
 ## News
 
-- `2025/02/12` (`1.1.0rc1`): This prerelease adds native support for COCO datasets. Now you can fine-tune Florence-2 directly on your existing COCO data for seamless model adaptation.
 - `2025/02/05` (`1.0.0`): This release introduces support for Florence-2, PaliGemma 2, and Qwen2.5-VL and includes LoRA, QLoRA, and graph freezing to keep hardware requirements in check. It offers a single CLI/SDK to reduce code complexity, and a consistent JSONL format to streamline data handling.
 
 ## Quickstart
