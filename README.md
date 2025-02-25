@@ -48,6 +48,7 @@ recipes for popular vision-language models such as **Florence-2**, **PaliGemma 2
 | Florence-2 (0.9B) object detection with LoRA (experimental) | [![colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/roboflow/maestro/blob/develop/cookbooks/maestro_florence_2_object_detection.ipynb) |
 | PaliGemma 2 (3B) JSON data extraction with LoRA             | [![colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/roboflow/maestro/blob/develop/cookbooks/maestro_paligemma_2_json_extraction.ipynb) |
 | Qwen2.5-VL (3B) JSON data extraction with QLoRA             | [![colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/roboflow/maestro/blob/develop/cookbooks/maestro_qwen2_5_vl_json_extraction.ipynb)  |
+| Qwen2.5-VL (7B) object detection with QLoRA (experimental)  | [![colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/roboflow/maestro/blob/develop/cookbooks/maestro_qwen2_5_vl_object_detection.ipynb) |
 
 ## News
 
