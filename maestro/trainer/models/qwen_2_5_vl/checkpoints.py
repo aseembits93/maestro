@@ -24,7 +24,7 @@ def load_model(
     model_id_or_path: str = DEFAULT_QWEN2_5_VL_MODEL_ID,
     revision: str = DEFAULT_QWEN2_5_VL_MODEL_REVISION,
     device: str | torch.device = "auto",
-    optimization_strategy: OptimizationStrategy = OptimizationStrategy.LORA,
+    optimization_strategy: OptimizationStrategy = OptimizationStrategy.NONE,
     cache_dir: Optional[str] = None,
     min_pixels: int = 256 * 28 * 28,
     max_pixels: int = 1280 * 28 * 28,

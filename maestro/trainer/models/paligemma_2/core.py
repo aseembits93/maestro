@@ -17,6 +17,7 @@ from maestro.trainer.common.training import MaestroTrainer
 from maestro.trainer.common.utils.device import device_is_available, parse_device_spec
 from maestro.trainer.common.utils.path import create_new_run_directory
 from maestro.trainer.common.utils.seed import ensure_reproducibility
+from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.models.paligemma_2.checkpoints import (
     DEFAULT_PALIGEMMA2_MODEL_ID,
     DEFAULT_PALIGEMMA2_MODEL_REVISION,
@@ -26,6 +27,8 @@ from maestro.trainer.models.paligemma_2.checkpoints import (
 )
 from maestro.trainer.models.paligemma_2.inference import predict_with_inputs
 from maestro.trainer.models.paligemma_2.loaders import evaluation_collate_fn, train_collate_fn
+
+logger = get_maestro_logger()
 
 
 @dataclass()
@@ -161,6 +164,12 @@ class PaliGemma2Trainer(MaestroTrainer):
             device=self.config.device,
             max_new_tokens=self.config.max_new_tokens,
         )
+
+        if batch_idx == 0:
+            logger.info(f"sample valid prefix: {prefixes[0]}")
+            logger.info(f"sample valid suffix: {suffixes[0]}")
+            logger.info(f"sample generated suffix: {generated_suffixes[0]}")
+
         for metric in self.config.metrics:
             result = metric.compute(predictions=generated_suffixes, targets=suffixes)
             for key, value in result.items():
@@ -213,6 +222,10 @@ def train(config: PaliGemma2Configuration | dict) -> None:
         test_collect_fn=partial(evaluation_collate_fn, processor=processor),
         test_num_workers=config.val_num_workers,
     )
+
+    _, train_entry = train_loader.dataset[0]
+    logger.info(f"sample train prefix: {train_entry['prefix']}")
+    logger.info(f"sample train suffix: {train_entry['suffix']}")
 
     pl_module = PaliGemma2Trainer(
         processor=processor, model=model, train_loader=train_loader, valid_loader=valid_loader, config=config
