@@ -32,4 +32,4 @@ def detections_to_suffix_formatter(
 def detections_to_prefix_formatter(
     xyxy: np.ndarray, class_id: np.ndarray, classes: list[str], resolution_wh: tuple[int, int]
 ) -> str:
-    return "Outline the position of " + ", ".join(classes) + " and output all the coordinates in JSON format."
+    return "Outline the position of " + ", ".join(classes) + ". Output all the coordinates in JSON format."
