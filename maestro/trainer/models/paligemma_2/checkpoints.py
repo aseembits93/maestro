@@ -1,8 +1,8 @@
+import logging
 import os
 from enum import Enum
 from typing import Optional
 
-import logging
 import torch
 from peft import LoraConfig, get_peft_model
 from transformers import BitsAndBytesConfig, PaliGemmaForConditionalGeneration, PaliGemmaProcessor
@@ -12,14 +12,15 @@ from maestro.trainer.common.utils.device import parse_device_spec
 DEFAULT_PALIGEMMA2_MODEL_ID = "google/paligemma2-3b-pt-224"
 DEFAULT_PALIGEMMA2_MODEL_REVISION = "refs/heads/main"
 DEFAULT_PALIGEMMA2_PEFT_PARAMS = {
-                        "r": 8,
-                        "lora_alpha": 16,
-                        "lora_dropout": 0.05,
-                        "bias": "none",
-                        "target_modules":["q_proj", "o_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"],
-                        "task_type":"CAUSAL_LM",
-                        }
+    "r": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "bias": "none",
+    "target_modules": ["q_proj", "o_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"],
+    "task_type": "CAUSAL_LM",
+}
 logger = logging.getLogger()
+
 
 class OptimizationStrategy(Enum):
     """Enumeration for optimization strategies."""
