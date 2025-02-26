@@ -1,10 +1,10 @@
 import dataclasses
+import json
 from typing import Annotated, Optional
 
 import logging
 import rich
 import typer
-import json 
 
 from maestro.trainer.models.florence_2.checkpoints import DEFAULT_FLORENCE2_MODEL_ID, DEFAULT_FLORENCE2_MODEL_REVISION
 from maestro.trainer.models.florence_2.core import Florence2Configuration

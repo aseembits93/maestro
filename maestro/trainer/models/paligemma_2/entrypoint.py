@@ -1,10 +1,10 @@
 import dataclasses
+import json
 from typing import Annotated, Optional
 
 import logging
 import rich
 import typer
-import json
 
 from maestro.trainer.models.paligemma_2.checkpoints import (
     DEFAULT_PALIGEMMA2_MODEL_ID,

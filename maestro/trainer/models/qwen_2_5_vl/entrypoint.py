@@ -1,10 +1,10 @@
 import dataclasses
+import json
 from typing import Annotated, Optional
 
 import logging
 import rich
 import typer
-import json
 
 from maestro.trainer.models.qwen_2_5_vl.checkpoints import (
     DEFAULT_QWEN2_5_VL_MODEL_ID,
@@ -101,7 +101,11 @@ def train(
         Optional[int],
         typer.Option("--random_seed", help="Random seed for ensuring reproducibility. If None, no seed is set"),
     ] = None,
+<<<<<<< HEAD
     peft_advanced_params: Annotated[ 
+=======
+    peft_advanced_params: Annotated[  # added by me
+>>>>>>> 3cc1dae2e6e7356430f4203291f5512e908aa047
         Optional[str],
         typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
     ] = None,
