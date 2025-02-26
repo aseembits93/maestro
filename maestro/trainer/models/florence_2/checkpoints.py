@@ -2,6 +2,7 @@ import os
 from enum import Enum
 from typing import Optional
 
+import logging
 import torch
 from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoProcessor
@@ -10,7 +11,15 @@ from maestro.trainer.common.utils.device import parse_device_spec
 
 DEFAULT_FLORENCE2_MODEL_ID = "microsoft/Florence-2-base-ft"
 DEFAULT_FLORENCE2_MODEL_REVISION = "refs/pr/20"
-
+DEFAULT_FLORENCE2_PEFT_PARAMS = {
+                        "r": 8,
+                        "lora_alpha": 16,
+                        "lora_dropout": 0.05,
+                        "bias": "none",
+                        "target_modules":["q_proj", "o_proj", "k_proj", "v_proj", "linear", "Conv2d", "lm_head", "fc2"],
+                        "task_type":"CAUSAL_LM",
+                        }
+logger = logging.getLogger()
 
 class OptimizationStrategy(Enum):
     """Enumeration for optimization strategies."""
@@ -25,7 +34,7 @@ def load_model(
     revision: str = DEFAULT_FLORENCE2_MODEL_REVISION,
     device: str | torch.device = "auto",
     optimization_strategy: OptimizationStrategy = OptimizationStrategy.NONE,
-    peft_advanced_params: Optional[dict] = None, # added by me
+    peft_advanced_params: Optional[dict] = None, 
     cache_dir: Optional[str] = None,
 ) -> tuple[AutoProcessor, AutoModelForCausalLM]:
     """Loads a Florence 2 model and its associated processor.
@@ -49,17 +58,18 @@ def load_model(
     processor = AutoProcessor.from_pretrained(model_id_or_path, trust_remote_code=True, revision=revision)
 
     if optimization_strategy == OptimizationStrategy.LORA:
-        default_params = {
-                        "r": 8,
-                        "lora_alpha": 16,
-                        "lora_dropout": 0.05,
-                        "bias": "none",
-                        "target_modules":["q_proj", "o_proj", "k_proj", "v_proj", "linear", "Conv2d", "lm_head", "fc2"],
-                        "task_type":"CAUSAL_LM",
-                        }
+        default_params = DEFAULT_FLORENCE2_PEFT_PARAMS
         if peft_advanced_params is not None:
             default_params.update(peft_advanced_params)
-        config = LoraConfig(**default_params)
+            try:
+                config = LoraConfig(**default_params)
+                logger.info("Successfully created LoraConfig")
+            except TypeError as e:
+                logger.error(f"Invalid parameters for LoraConfig: {e}")
+                raise e
+        else:
+            logger.info("No LoRA parameters provided. Using default configuration.")
+            config = LoraConfig(**default_params)
         model = AutoModelForCausalLM.from_pretrained(
             model_id_or_path,
             revision=revision,

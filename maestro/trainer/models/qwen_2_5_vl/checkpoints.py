@@ -2,6 +2,7 @@ import os
 from enum import Enum
 from typing import Optional
 
+import logging
 import torch
 from peft import LoraConfig, get_peft_model
 from transformers import BitsAndBytesConfig, Qwen2_5_VLForConditionalGeneration, Qwen2_5_VLProcessor
@@ -10,7 +11,15 @@ from maestro.trainer.common.utils.device import parse_device_spec
 
 DEFAULT_QWEN2_5_VL_MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
 DEFAULT_QWEN2_5_VL_MODEL_REVISION = "refs/heads/main"
-
+DEFAULT_QWEN2_5_VL_PEFT_PARAMS = {
+                        "r": 8,
+                        "lora_alpha": 16,
+                        "lora_dropout": 0.05,
+                        "bias": "none",
+                        "target_modules":["q_proj", "v_proj"],
+                        "task_type":"CAUSAL_LM",
+                        }
+logger = logging.getLogger()
 
 class OptimizationStrategy(Enum):
     """Enumeration for optimization strategies."""
@@ -60,18 +69,18 @@ def load_model(
     processor.tokenizer.padding_side = "left"
 
     if optimization_strategy in {OptimizationStrategy.LORA, OptimizationStrategy.QLORA}:
-        default_params = {
-                        "r": 8,
-                        "lora_alpha": 16,
-                        "lora_dropout": 0.05,
-                        "bias": "none",
-                        "target_modules":["q_proj", "v_proj"],
-                        "task_type":"CAUSAL_LM",
-                        }
+        default_params = DEFAULT_QWEN2_5_VL_PEFT_PARAMS
         if peft_advanced_params is not None:
             default_params.update(peft_advanced_params)
-        lora_config = LoraConfig(**default_params)
-
+            try:
+                lora_config = LoraConfig(**default_params)
+                logger.info("Successfully created LoraConfig")
+            except TypeError as e:
+                logger.error(f"Invalid parameters for LoraConfig: {e}")
+                raise e
+        else:
+            logger.info("No LoRA parameters provided. Using default configuration.")
+            lora_config = LoraConfig(**default_params)
         bnb_config = (
             BitsAndBytesConfig(
                 load_in_4bit=True,

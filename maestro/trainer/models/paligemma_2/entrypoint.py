@@ -1,6 +1,7 @@
 import dataclasses
 from typing import Annotated, Optional
 
+import logging
 import rich
 import typer
 import json
@@ -12,6 +13,7 @@ from maestro.trainer.models.paligemma_2.checkpoints import (
 from maestro.trainer.models.paligemma_2.core import PaliGemma2Configuration
 from maestro.trainer.models.paligemma_2.core import train as paligemma_2_train
 
+logger = logging.getLogger()
 paligemma_2_app = typer.Typer(help="Fine-tune and evaluate PaliGemma-2 model")
 
 
@@ -62,11 +64,24 @@ def train(
         Optional[int],
         typer.Option("--random_seed", help="Random seed for ensuring reproducibility. If None, no seed is set"),
     ] = None,
-    peft_advanced_params: Annotated[ # added by me
+    peft_advanced_params: Annotated[
         Optional[str],
         typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
     ] = None,
 ) -> None:
+    if peft_advanced_params is not None:
+        try:
+            peft_advanced_params = json.loads(peft_advanced_params)  
+            if not isinstance(peft_advanced_params, dict):
+                raise TypeError("Parsed JSON is not a dictionary")
+            logger.info(f"Parsed LoRA parameters: {peft_advanced_params}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON: {e}")
+            raise e  
+        except TypeError as e:
+            logger.error(f"Invalid LoRA parameter format: {e}")
+            raise e
+
     config = PaliGemma2Configuration(
         dataset=dataset,
         model_id=model_id,
@@ -85,7 +100,7 @@ def train(
         metrics=metrics,
         max_new_tokens=max_new_tokens,
         random_seed=random_seed,
-        peft_advanced_params=json.loads(peft_advanced_params) if peft_advanced_params is not None else None,
+        peft_advanced_params=peft_advanced_params,
     )
     typer.echo(typer.style(text="Training configuration", fg=typer.colors.BRIGHT_GREEN, bold=True))
     rich.print(dataclasses.asdict(config))
