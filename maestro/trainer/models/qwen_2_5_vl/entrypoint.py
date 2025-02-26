@@ -1,8 +1,8 @@
 import dataclasses
 import json
+import logging
 from typing import Annotated, Optional
 
-import logging
 import rich
 import typer
 
@@ -101,7 +101,7 @@ def train(
         Optional[int],
         typer.Option("--random_seed", help="Random seed for ensuring reproducibility. If None, no seed is set"),
     ] = None,
-    peft_advanced_params: Annotated[ 
+    peft_advanced_params: Annotated[
         Optional[str],
         typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
     ] = None,
