@@ -1,8 +1,8 @@
 import dataclasses
 import json
+import logging
 from typing import Annotated, Optional
 
-import logging
 import rich
 import typer
 
@@ -70,16 +70,16 @@ def train(
 ) -> None:
     if peft_advanced_params is not None:
         try:
-            peft_advanced_params = json.loads(peft_advanced_params)  
+            peft_advanced_params = json.loads(peft_advanced_params)
             if not isinstance(peft_advanced_params, dict):
                 raise TypeError("Parsed JSON is not a dictionary")
             logger.info(f"Parsed LoRA parameters: {peft_advanced_params}")
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON: {e}")
-            raise e  
+            raise e
         except TypeError as e:
             logger.error(f"Invalid LoRA parameter format: {e}")
-            raise e  
+            raise e
 
     config = Florence2Configuration(
         dataset=dataset,
@@ -99,7 +99,7 @@ def train(
         metrics=metrics,
         max_new_tokens=max_new_tokens,
         random_seed=random_seed,
-        peft_advanced_params=peft_advanced_params, 
+        peft_advanced_params=peft_advanced_params,
     )
     typer.echo(typer.style("Training configuration", fg=typer.colors.BRIGHT_GREEN, bold=True))
     rich.print(dataclasses.asdict(config))
