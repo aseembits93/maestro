@@ -61,13 +61,13 @@ def load_model(
 
     if optimization_strategy in {OptimizationStrategy.LORA, OptimizationStrategy.QLORA}:
         default_params = {
-                        "r": 8,
-                        "lora_alpha": 16,
-                        "lora_dropout": 0.05,
-                        "bias": "none",
-                        "target_modules":["q_proj", "v_proj"],
-                        "task_type":"CAUSAL_LM",
-                        }
+            "r": 8,
+            "lora_alpha": 16,
+            "lora_dropout": 0.05,
+            "bias": "none",
+            "target_modules": ["q_proj", "v_proj"],
+            "task_type": "CAUSAL_LM",
+        }
         if peft_advanced_params is not None:
             default_params.update(peft_advanced_params)
         lora_config = LoraConfig(**default_params)

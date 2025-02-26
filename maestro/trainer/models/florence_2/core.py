@@ -105,7 +105,7 @@ class Florence2Configuration:
     metrics: list[BaseMetric] | list[str] = field(default_factory=list)
     max_new_tokens: int = 1024
     random_seed: Optional[int] = None
-    peft_advanced_params: Optional[dict] = None 
+    peft_advanced_params: Optional[dict] = None
 
     def __post_init__(self):
         if self.val_batch_size is None:

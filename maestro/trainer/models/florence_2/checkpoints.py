@@ -25,7 +25,7 @@ def load_model(
     revision: str = DEFAULT_FLORENCE2_MODEL_REVISION,
     device: str | torch.device = "auto",
     optimization_strategy: OptimizationStrategy = OptimizationStrategy.NONE,
-    peft_advanced_params: Optional[dict] = None, # added by me
+    peft_advanced_params: Optional[dict] = None,  # added by me
     cache_dir: Optional[str] = None,
 ) -> tuple[AutoProcessor, AutoModelForCausalLM]:
     """Loads a Florence 2 model and its associated processor.
@@ -50,13 +50,13 @@ def load_model(
 
     if optimization_strategy == OptimizationStrategy.LORA:
         default_params = {
-                        "r": 8,
-                        "lora_alpha": 16,
-                        "lora_dropout": 0.05,
-                        "bias": "none",
-                        "target_modules":["q_proj", "o_proj", "k_proj", "v_proj", "linear", "Conv2d", "lm_head", "fc2"],
-                        "task_type":"CAUSAL_LM",
-                        }
+            "r": 8,
+            "lora_alpha": 16,
+            "lora_dropout": 0.05,
+            "bias": "none",
+            "target_modules": ["q_proj", "o_proj", "k_proj", "v_proj", "linear", "Conv2d", "lm_head", "fc2"],
+            "task_type": "CAUSAL_LM",
+        }
         if peft_advanced_params is not None:
             default_params.update(peft_advanced_params)
         config = LoraConfig(**default_params)
