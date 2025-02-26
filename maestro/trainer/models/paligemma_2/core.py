@@ -73,6 +73,8 @@ class PaliGemma2Configuration:
             Maximum number of new tokens generated during inference.
         random_seed (Optional[int]):
             Random seed for ensuring reproducibility. If None, no seeding is applied.
+        peft_advanced_params (Optional[dict]):
+            Custom LoRA configuration . If None, default configuration is applied.
     """
 
     dataset: str
@@ -92,6 +94,7 @@ class PaliGemma2Configuration:
     metrics: list[BaseMetric] | list[str] = field(default_factory=list)
     max_new_tokens: int = 512
     random_seed: Optional[int] = None
+    peft_advanced_params: Optional[dict] = None
 
     def __post_init__(self):
         if self.val_batch_size is None:
@@ -208,6 +211,7 @@ def train(config: PaliGemma2Configuration | dict) -> None:
         revision=config.revision,
         device=config.device,
         optimization_strategy=OptimizationStrategy(config.optimization_strategy),
+        peft_advanced_params=config.peft_advanced_params,
         cache_dir=config.cache_dir,
     )
     dataset_location = resolve_dataset_path(config.dataset)

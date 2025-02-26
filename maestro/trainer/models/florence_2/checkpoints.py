@@ -25,6 +25,7 @@ def load_model(
     revision: str = DEFAULT_FLORENCE2_MODEL_REVISION,
     device: str | torch.device = "auto",
     optimization_strategy: OptimizationStrategy = OptimizationStrategy.NONE,
+    peft_advanced_params: Optional[dict] = None, # added by me
     cache_dir: Optional[str] = None,
 ) -> tuple[AutoProcessor, AutoModelForCausalLM]:
     """Loads a Florence 2 model and its associated processor.
@@ -34,6 +35,7 @@ def load_model(
         revision (str): The specific model revision to use.
         device (torch.device): The device to load the model onto.
         optimization_strategy (OptimizationStrategy): The optimization strategy to apply to the model.
+        peft_advanced_params: custom lora configuration
         cache_dir (Optional[str]): Directory to cache the downloaded model files.
 
     Returns:
@@ -47,14 +49,17 @@ def load_model(
     processor = AutoProcessor.from_pretrained(model_id_or_path, trust_remote_code=True, revision=revision)
 
     if optimization_strategy == OptimizationStrategy.LORA:
-        config = LoraConfig(
-            r=8,
-            lora_alpha=16,
-            lora_dropout=0.05,
-            bias="none",
-            target_modules=["q_proj", "o_proj", "k_proj", "v_proj", "linear", "Conv2d", "lm_head", "fc2"],
-            task_type="CAUSAL_LM",
-        )
+        default_params = {
+                        "r": 8,
+                        "lora_alpha": 16,
+                        "lora_dropout": 0.05,
+                        "bias": "none",
+                        "target_modules":["q_proj", "o_proj", "k_proj", "v_proj", "linear", "Conv2d", "lm_head", "fc2"],
+                        "task_type":"CAUSAL_LM",
+                        }
+        if peft_advanced_params is not None:
+            default_params.update(peft_advanced_params)
+        config = LoraConfig(**default_params)
         model = AutoModelForCausalLM.from_pretrained(
             model_id_or_path,
             revision=revision,

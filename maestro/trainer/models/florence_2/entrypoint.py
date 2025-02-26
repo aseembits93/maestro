@@ -3,6 +3,7 @@ from typing import Annotated, Optional
 
 import rich
 import typer
+import json 
 
 from maestro.trainer.models.florence_2.checkpoints import DEFAULT_FLORENCE2_MODEL_ID, DEFAULT_FLORENCE2_MODEL_REVISION
 from maestro.trainer.models.florence_2.core import Florence2Configuration
@@ -60,6 +61,10 @@ def train(
         Optional[int],
         typer.Option("--random_seed", help="Random seed for ensuring reproducibility. If None, no seed is set"),
     ] = None,
+    peft_advanced_params: Annotated[ # added by me
+        Optional[str],
+        typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
+    ] = None,
 ) -> None:
     config = Florence2Configuration(
         dataset=dataset,
@@ -79,6 +84,7 @@ def train(
         metrics=metrics,
         max_new_tokens=max_new_tokens,
         random_seed=random_seed,
+        peft_advanced_params=json.loads(peft_advanced_params) if peft_advanced_params is not None else None, # added by me
     )
     typer.echo(typer.style("Training configuration", fg=typer.colors.BRIGHT_GREEN, bold=True))
     rich.print(dataclasses.asdict(config))

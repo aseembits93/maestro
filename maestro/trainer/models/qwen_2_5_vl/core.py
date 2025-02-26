@@ -66,6 +66,7 @@ class Qwen25VLConfiguration:
         max_pixels (int): Maximum number of pixels for input images.
         max_new_tokens (int): Maximum number of new tokens generated during inference.
         random_seed (Optional[int]): Random seed for ensuring reproducibility. If `None`, no seed is set.
+        peft_advanced_params (Optional[dict]): Custom LoRA configuration . If None, default configuration is applied.
     """
 
     dataset: str
@@ -87,6 +88,7 @@ class Qwen25VLConfiguration:
     max_pixels: int = 1280 * 28 * 28
     max_new_tokens: int = 1024
     random_seed: Optional[int] = None
+    peft_advanced_params: Optional[dict] = None
 
     def __post_init__(self):
         if self.val_batch_size is None:
@@ -252,6 +254,7 @@ def train(config: Qwen25VLConfiguration | dict) -> None:
         revision=config.revision,
         device=config.device,
         optimization_strategy=OptimizationStrategy(config.optimization_strategy),
+        peft_advanced_params=config.peft_advanced_params,
         min_pixels=config.min_pixels,
         max_pixels=config.max_pixels,
     )

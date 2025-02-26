@@ -25,6 +25,7 @@ def load_model(
     revision: str = DEFAULT_QWEN2_5_VL_MODEL_REVISION,
     device: str | torch.device = "auto",
     optimization_strategy: OptimizationStrategy = OptimizationStrategy.NONE,
+    peft_advanced_params: Optional[dict] = None,
     cache_dir: Optional[str] = None,
     min_pixels: int = 256 * 28 * 28,
     max_pixels: int = 1280 * 28 * 28,
@@ -37,6 +38,7 @@ def load_model(
         revision (str): The model revision to load.
         device (str | torch.device): The device to load the model onto.
         optimization_strategy (OptimizationStrategy): LORA, QLORA, or NONE.
+        peft_advanced_params: custom lora configuration
         cache_dir (Optional[str]): Directory to cache downloaded model files.
         min_pixels (int): Minimum number of pixels allowed in the resized image.
         max_pixels (int): Maximum number of pixels allowed in the resized image.
@@ -58,14 +60,17 @@ def load_model(
     processor.tokenizer.padding_side = "left"
 
     if optimization_strategy in {OptimizationStrategy.LORA, OptimizationStrategy.QLORA}:
-        lora_config = LoraConfig(
-            r=8,
-            lora_alpha=16,
-            lora_dropout=0.05,
-            bias="none",
-            target_modules=["q_proj", "v_proj"],
-            task_type="CAUSAL_LM",
-        )
+        default_params = {
+                        "r": 8,
+                        "lora_alpha": 16,
+                        "lora_dropout": 0.05,
+                        "bias": "none",
+                        "target_modules":["q_proj", "v_proj"],
+                        "task_type":"CAUSAL_LM",
+                        }
+        if peft_advanced_params is not None:
+            default_params.update(peft_advanced_params)
+        lora_config = LoraConfig(**default_params)
 
         bnb_config = (
             BitsAndBytesConfig(

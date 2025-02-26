@@ -3,6 +3,7 @@ from typing import Annotated, Optional
 
 import rich
 import typer
+import json
 
 from maestro.trainer.models.qwen_2_5_vl.checkpoints import (
     DEFAULT_QWEN2_5_VL_MODEL_ID,
@@ -98,6 +99,10 @@ def train(
         Optional[int],
         typer.Option("--random_seed", help="Random seed for ensuring reproducibility. If None, no seed is set"),
     ] = None,
+    peft_advanced_params: Annotated[ # added by me
+        Optional[str],
+        typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
+    ] = None,
 ) -> None:
     config = Qwen25VLConfiguration(
         dataset=dataset,
@@ -119,6 +124,7 @@ def train(
         max_pixels=max_pixels,
         max_new_tokens=max_new_tokens,
         random_seed=random_seed,
+        peft_advanced_params=json.loads(peft_advanced_params) if peft_advanced_params is not None else None,
     )
     typer.echo(typer.style(text="Training configuration", fg=typer.colors.BRIGHT_GREEN, bold=True))
     rich.print(dataclasses.asdict(config))
