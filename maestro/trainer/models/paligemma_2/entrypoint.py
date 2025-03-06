@@ -20,8 +20,6 @@ paligemma_2_app = typer.Typer(help="Fine-tune and evaluate PaliGemma-2 model")
 @paligemma_2_app.command(
     help="Train PaliGemma-2 model", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
 )
-
-
 def parse_lora_params(param_str):
     parsed_params = json.loads(param_str)
     if not isinstance(parsed_params, dict):

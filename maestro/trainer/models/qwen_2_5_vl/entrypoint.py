@@ -20,12 +20,12 @@ qwen_2_5_vl_app = typer.Typer(help="Fine-tune and evaluate Qwen2.5-VL model")
 @qwen_2_5_vl_app.command(
     help="Train Qwen2.5-VL model", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
 )
-
 def parse_lora_params(param_str):
     parsed_params = json.loads(param_str)
     if not isinstance(parsed_params, dict):
         raise TypeError("Parsed JSON is not a dictionary")
     return parsed_params
+
 
 def train(
     dataset: Annotated[

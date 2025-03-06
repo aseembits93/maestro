@@ -18,12 +18,12 @@ florence_2_app = typer.Typer(help="Fine-tune and evaluate Florence-2 model")
     help="Train Florence-2 model",
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
-
 def parse_lora_params(param_str):
     parsed_params = json.loads(param_str)
     if not isinstance(parsed_params, dict):
         raise TypeError("Parsed JSON is not a dictionary")
     return parsed_params
+
 
 def train(
     dataset: Annotated[
@@ -85,7 +85,7 @@ def train(
         except TypeError:
             logger.exception("Invalid LoRA parameter format")
             raise
-    
+
     config = Florence2Configuration(
         dataset=dataset,
         model_id=model_id,
