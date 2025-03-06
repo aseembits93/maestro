@@ -67,8 +67,8 @@ def load_model(
                 lora_config = LoraConfig(**default_params)
                 logger.info("Successfully created LoraConfig")
             except TypeError as e:
-                logger.error(f"Invalid parameters for LoraConfig: {e}")
-                raise e
+                logger.exception(f"Invalid parameters for LoraConfig: {e}")
+                raise
         else:
             logger.info("No LoRA parameters provided. Using default configuration.")
             lora_config = LoraConfig(**default_params)

@@ -20,6 +20,13 @@ qwen_2_5_vl_app = typer.Typer(help="Fine-tune and evaluate Qwen2.5-VL model")
 @qwen_2_5_vl_app.command(
     help="Train Qwen2.5-VL model", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
 )
+
+def parse_lora_params(param_str):
+    parsed_params = json.loads(param_str)
+    if not isinstance(parsed_params, dict):
+        raise TypeError("Parsed JSON is not a dictionary")
+    return parsed_params
+
 def train(
     dataset: Annotated[
         str,
@@ -108,16 +115,14 @@ def train(
 ) -> None:
     if peft_advanced_params is not None:
         try:
-            peft_advanced_params = json.loads(peft_advanced_params)
-            if not isinstance(peft_advanced_params, dict):
-                raise TypeError("Parsed JSON is not a dictionary")
+            peft_advanced_params = parse_lora_params(peft_advanced_params)
             logger.info(f"Parsed LoRA parameters: {peft_advanced_params}")
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON: {e}")
-            raise e
-        except TypeError as e:
-            logger.error(f"Invalid LoRA parameter format: {e}")
-            raise e
+        except json.JSONDecodeError:
+            logger.exception("Failed to parse JSON")
+            raise
+        except TypeError:
+            logger.exception("Invalid LoRA parameter format")
+            raise
 
     config = Qwen25VLConfiguration(
         dataset=dataset,
