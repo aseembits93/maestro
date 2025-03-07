@@ -77,8 +77,8 @@ def train(
 
     if peft_advanced_params is not None:
         try:
-            peft_advanced_params = parse_lora_params(peft_advanced_params)
-            logger.info(f"Parsed LoRA parameters: {peft_advanced_params}")
+            peft_advanced_params_dict = parse_lora_params(peft_advanced_params)
+            logger.info(f"Parsed LoRA parameters: {peft_advanced_params_dict}")
         except json.JSONDecodeError:
             logger.exception("Failed to parse JSON")
             raise
@@ -104,7 +104,7 @@ def train(
         metrics=metrics,
         max_new_tokens=max_new_tokens,
         random_seed=random_seed,
-        peft_advanced_params=peft_advanced_params,
+        peft_advanced_params=peft_advanced_params_dict,
     )
     typer.echo(typer.style(text="Training configuration", fg=typer.colors.BRIGHT_GREEN, bold=True))
     rich.print(dataclasses.asdict(config))
