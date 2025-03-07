@@ -1,16 +1,16 @@
 import dataclasses
 import json
-import logging
 from typing import Annotated, Optional
 
 import rich
 import typer
 
+from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.models.florence_2.checkpoints import DEFAULT_FLORENCE2_MODEL_ID, DEFAULT_FLORENCE2_MODEL_REVISION
 from maestro.trainer.models.florence_2.core import Florence2Configuration
 from maestro.trainer.models.florence_2.core import train as florence_2_train
 
-logger = logging.getLogger()
+logger = get_maestro_logger()
 florence_2_app = typer.Typer(help="Fine-tune and evaluate Florence-2 model")
 
 
@@ -18,12 +18,6 @@ florence_2_app = typer.Typer(help="Fine-tune and evaluate Florence-2 model")
     help="Train Florence-2 model",
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
-def parse_lora_params(param_str):
-    parsed_params = json.loads(param_str)
-    if not isinstance(parsed_params, dict):
-        raise TypeError("Parsed JSON is not a dictionary")
-    return parsed_params
-
 
 def train(
     dataset: Annotated[
@@ -75,6 +69,13 @@ def train(
         typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
     ] = None,
 ) -> None:
+    
+    def parse_lora_params(param_str):
+        parsed_params = json.loads(param_str)
+        if not isinstance(parsed_params, dict):
+            raise TypeError("Parsed JSON is not a dictionary")
+        return parsed_params
+
     if peft_advanced_params is not None:
         try:
             peft_advanced_params = parse_lora_params(peft_advanced_params)

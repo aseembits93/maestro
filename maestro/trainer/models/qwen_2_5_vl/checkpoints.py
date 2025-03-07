@@ -1,4 +1,3 @@
-import logging
 import os
 from enum import Enum
 from typing import Optional
@@ -7,6 +6,7 @@ import torch
 from peft import LoraConfig, get_peft_model
 from transformers import BitsAndBytesConfig, Qwen2_5_VLForConditionalGeneration, Qwen2_5_VLProcessor
 
+from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.common.utils.device import parse_device_spec
 
 DEFAULT_QWEN2_5_VL_MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
@@ -19,7 +19,7 @@ DEFAULT_QWEN2_5_VL_PEFT_PARAMS = {
     "target_modules": ["q_proj", "v_proj"],
     "task_type": "CAUSAL_LM",
 }
-logger = logging.getLogger()
+logger = get_maestro_logger()
 
 
 class OptimizationStrategy(Enum):

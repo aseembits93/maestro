@@ -1,4 +1,3 @@
-import logging
 import os
 from enum import Enum
 from typing import Optional
@@ -7,6 +6,7 @@ import torch
 from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoProcessor
 
+from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.common.utils.device import parse_device_spec
 
 DEFAULT_FLORENCE2_MODEL_ID = "microsoft/Florence-2-base-ft"
@@ -19,7 +19,7 @@ DEFAULT_FLORENCE2_PEFT_PARAMS = {
     "target_modules": ["q_proj", "o_proj", "k_proj", "v_proj", "linear", "Conv2d", "lm_head", "fc2"],
     "task_type": "CAUSAL_LM",
 }
-logger = logging.getLogger()
+logger = get_maestro_logger()
 
 
 class OptimizationStrategy(Enum):

@@ -1,11 +1,11 @@
 import dataclasses
 import json
-import logging
 from typing import Annotated, Optional
 
 import rich
 import typer
 
+from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.models.qwen_2_5_vl.checkpoints import (
     DEFAULT_QWEN2_5_VL_MODEL_ID,
     DEFAULT_QWEN2_5_VL_MODEL_REVISION,
@@ -13,19 +13,13 @@ from maestro.trainer.models.qwen_2_5_vl.checkpoints import (
 from maestro.trainer.models.qwen_2_5_vl.core import Qwen25VLConfiguration
 from maestro.trainer.models.qwen_2_5_vl.core import train as qwen_2_5_vl_train
 
-logger = logging.getLogger()
+logger = get_maestro_logger()
 qwen_2_5_vl_app = typer.Typer(help="Fine-tune and evaluate Qwen2.5-VL model")
 
 
 @qwen_2_5_vl_app.command(
     help="Train Qwen2.5-VL model", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
 )
-def parse_lora_params(param_str):
-    parsed_params = json.loads(param_str)
-    if not isinstance(parsed_params, dict):
-        raise TypeError("Parsed JSON is not a dictionary")
-    return parsed_params
-
 
 def train(
     dataset: Annotated[
@@ -113,6 +107,13 @@ def train(
         typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
     ] = None,
 ) -> None:
+    
+    def parse_lora_params(param_str):
+        parsed_params = json.loads(param_str)
+        if not isinstance(parsed_params, dict):
+            raise TypeError("Parsed JSON is not a dictionary")
+        return parsed_params
+
     if peft_advanced_params is not None:
         try:
             peft_advanced_params = parse_lora_params(peft_advanced_params)
