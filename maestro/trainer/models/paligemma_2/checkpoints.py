@@ -6,8 +6,8 @@ import torch
 from peft import LoraConfig, get_peft_model
 from transformers import BitsAndBytesConfig, PaliGemmaForConditionalGeneration, PaliGemmaProcessor
 
-from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.common.utils.device import parse_device_spec
+from maestro.trainer.logger import get_maestro_logger
 
 DEFAULT_PALIGEMMA2_MODEL_ID = "google/paligemma2-3b-pt-224"
 DEFAULT_PALIGEMMA2_MODEL_REVISION = "refs/heads/main"

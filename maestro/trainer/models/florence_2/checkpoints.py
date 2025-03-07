@@ -6,8 +6,8 @@ import torch
 from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoProcessor
 
-from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.common.utils.device import parse_device_spec
+from maestro.trainer.logger import get_maestro_logger
 
 DEFAULT_FLORENCE2_MODEL_ID = "microsoft/Florence-2-base-ft"
 DEFAULT_FLORENCE2_MODEL_REVISION = "refs/pr/20"

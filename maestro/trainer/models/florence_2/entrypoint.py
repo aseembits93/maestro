@@ -18,7 +18,6 @@ florence_2_app = typer.Typer(help="Fine-tune and evaluate Florence-2 model")
     help="Train Florence-2 model",
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
-
 def train(
     dataset: Annotated[
         str,
@@ -69,7 +68,6 @@ def train(
         typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
     ] = None,
 ) -> None:
-    
     def parse_lora_params(param_str):
         parsed_params = json.loads(param_str)
         if not isinstance(parsed_params, dict):

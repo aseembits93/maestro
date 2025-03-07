@@ -6,8 +6,8 @@ import torch
 from peft import LoraConfig, get_peft_model
 from transformers import BitsAndBytesConfig, Qwen2_5_VLForConditionalGeneration, Qwen2_5_VLProcessor
 
-from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.common.utils.device import parse_device_spec
+from maestro.trainer.logger import get_maestro_logger
 
 DEFAULT_QWEN2_5_VL_MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
 DEFAULT_QWEN2_5_VL_MODEL_REVISION = "refs/heads/main"

@@ -20,7 +20,6 @@ paligemma_2_app = typer.Typer(help="Fine-tune and evaluate PaliGemma-2 model")
 @paligemma_2_app.command(
     help="Train PaliGemma-2 model", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
 )
-
 def train(
     dataset: Annotated[
         str,
@@ -70,13 +69,12 @@ def train(
         typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
     ] = None,
 ) -> None:
-    
     def parse_lora_params(param_str):
         parsed_params = json.loads(param_str)
         if not isinstance(parsed_params, dict):
             raise TypeError("Parsed JSON is not a dictionary")
         return parsed_params
-    
+
     if peft_advanced_params is not None:
         try:
             peft_advanced_params = parse_lora_params(peft_advanced_params)
