@@ -1,6 +1,6 @@
 import dataclasses
 import json
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated, Any, Optional
 
 import rich
 import typer
@@ -68,7 +68,7 @@ def train(
         typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
     ] = None,
 ) -> None:
-    def parse_lora_params(param_str) -> Dict[str, Any]:
+    def parse_lora_params(param_str) -> dict[str, Any]:
         parsed_params = json.loads(param_str)
         if not isinstance(parsed_params, dict):
             raise TypeError("Parsed JSON is not a dictionary")
