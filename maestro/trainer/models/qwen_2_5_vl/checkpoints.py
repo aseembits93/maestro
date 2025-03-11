@@ -7,9 +7,19 @@ from peft import LoraConfig, get_peft_model
 from transformers import BitsAndBytesConfig, Qwen2_5_VLForConditionalGeneration, Qwen2_5_VLProcessor
 
 from maestro.trainer.common.utils.device import parse_device_spec
+from maestro.trainer.logger import get_maestro_logger
 
 DEFAULT_QWEN2_5_VL_MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
 DEFAULT_QWEN2_5_VL_MODEL_REVISION = "refs/heads/main"
+DEFAULT_QWEN2_5_VL_PEFT_PARAMS = {
+    "r": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "bias": "none",
+    "target_modules": ["q_proj", "v_proj"],
+    "task_type": "CAUSAL_LM",
+}
+logger = get_maestro_logger()
 
 
 class OptimizationStrategy(Enum):
@@ -25,6 +35,7 @@ def load_model(
     revision: str = DEFAULT_QWEN2_5_VL_MODEL_REVISION,
     device: str | torch.device = "auto",
     optimization_strategy: OptimizationStrategy = OptimizationStrategy.NONE,
+    peft_advanced_params: Optional[dict] = None,
     cache_dir: Optional[str] = None,
     min_pixels: int = 256 * 28 * 28,
     max_pixels: int = 1280 * 28 * 28,
@@ -37,6 +48,7 @@ def load_model(
         revision (str): The model revision to load.
         device (str | torch.device): The device to load the model onto.
         optimization_strategy (OptimizationStrategy): LORA, QLORA, or NONE.
+        peft_advanced_params: custom lora configuration
         cache_dir (Optional[str]): Directory to cache downloaded model files.
         min_pixels (int): Minimum number of pixels allowed in the resized image.
         max_pixels (int): Maximum number of pixels allowed in the resized image.
@@ -58,15 +70,18 @@ def load_model(
     processor.tokenizer.padding_side = "left"
 
     if optimization_strategy in {OptimizationStrategy.LORA, OptimizationStrategy.QLORA}:
-        lora_config = LoraConfig(
-            r=8,
-            lora_alpha=16,
-            lora_dropout=0.05,
-            bias="none",
-            target_modules=["q_proj", "v_proj"],
-            task_type="CAUSAL_LM",
-        )
-
+        default_params = DEFAULT_QWEN2_5_VL_PEFT_PARAMS
+        if peft_advanced_params is not None:
+            default_params.update(peft_advanced_params)
+            try:
+                lora_config = LoraConfig(**default_params)
+                logger.info("Successfully created LoraConfig")
+            except TypeError:
+                logger.exception("Invalid parameters for LoraConfig")
+                raise
+        else:
+            logger.info("No LoRA parameters provided. Using default configuration.")
+            lora_config = LoraConfig(**default_params)
         bnb_config = (
             BitsAndBytesConfig(
                 load_in_4bit=True,

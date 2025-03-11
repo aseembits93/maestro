@@ -1,9 +1,11 @@
 import dataclasses
-from typing import Annotated, Optional
+import json
+from typing import Annotated, Any, Optional
 
 import rich
 import typer
 
+from maestro.trainer.logger import get_maestro_logger
 from maestro.trainer.models.qwen_2_5_vl.checkpoints import (
     DEFAULT_QWEN2_5_VL_MODEL_ID,
     DEFAULT_QWEN2_5_VL_MODEL_REVISION,
@@ -11,6 +13,7 @@ from maestro.trainer.models.qwen_2_5_vl.checkpoints import (
 from maestro.trainer.models.qwen_2_5_vl.core import Qwen25VLConfiguration
 from maestro.trainer.models.qwen_2_5_vl.core import train as qwen_2_5_vl_train
 
+logger = get_maestro_logger()
 qwen_2_5_vl_app = typer.Typer(help="Fine-tune and evaluate Qwen2.5-VL model")
 
 
@@ -98,7 +101,28 @@ def train(
         Optional[int],
         typer.Option("--random_seed", help="Random seed for ensuring reproducibility. If None, no seed is set"),
     ] = None,
+    peft_advanced_params: Annotated[
+        Optional[str],
+        typer.Option("--peft_advanced_params", help="custom LoRA config. If None, default LoRA config is set"),
+    ] = None,
 ) -> None:
+    def parse_lora_params(param_str) -> dict[str, Any]:
+        parsed_params = json.loads(param_str)
+        if not isinstance(parsed_params, dict):
+            raise TypeError("Parsed JSON is not a dictionary")
+        return parsed_params
+
+    if peft_advanced_params is not None:
+        try:
+            peft_advanced_params_dict = parse_lora_params(peft_advanced_params)
+            logger.info(f"Parsed LoRA parameters: {peft_advanced_params_dict}")
+        except json.JSONDecodeError:
+            logger.exception("Failed to parse JSON")
+            raise
+        except TypeError:
+            logger.exception("Invalid LoRA parameter format")
+            raise
+
     config = Qwen25VLConfiguration(
         dataset=dataset,
         model_id=model_id,
@@ -119,6 +143,7 @@ def train(
         max_pixels=max_pixels,
         max_new_tokens=max_new_tokens,
         random_seed=random_seed,
+        peft_advanced_params=peft_advanced_params_dict,
     )
     typer.echo(typer.style(text="Training configuration", fg=typer.colors.BRIGHT_GREEN, bold=True))
     rich.print(dataclasses.asdict(config))
