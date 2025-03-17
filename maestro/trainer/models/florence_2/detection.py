@@ -106,10 +106,10 @@ def detections_to_suffix_formatter(
         x_max /= width
         y_min /= height
         y_max /= height
-        x_min_int = int(round(x_min * 1000))
-        x_max_int = int(round(x_max * 1000))
-        y_min_int = int(round(y_min * 1000))
-        y_max_int = int(round(y_max * 1000))
+        x_min_int: int = round(x_min * 1000)
+        x_max_int: int = round(x_max * 1000)
+        y_min_int: int = round(y_min * 1000)
+        y_max_int: int = round(y_max * 1000)
         box_text = f"{cls_name}<loc_{x_min_int}><loc_{y_min_int}><loc_{x_max_int}><loc_{y_max_int}>"
         text_parts.append(box_text)
 
